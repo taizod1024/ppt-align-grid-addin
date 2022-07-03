@@ -1,13 +1,19 @@
 Attribute VB_Name = "Module1"
 Option Explicit
 
-Sub 図形をグリッドに揃えるCB(constrol As IRibbonControl)
+Sub グリッドに揃えるCB(constrol As IRibbonControl)
 
-    図形をグリッドに揃える
+    グリッドに揃える
 
 End Sub
 
-Sub 図形をグリッドに揃える()
+Sub 片側接続のコネクタCB(constrol As IRibbonControl)
+
+    片側接続のコネクタ
+
+End Sub
+
+Sub グリッドに揃える()
 
     Dim sldidx As Integer       ' slide index
     Dim shprng As ShapeRange    ' shape range
@@ -141,3 +147,51 @@ ERROR_NO_ONE_SLIDE:
 
 End Sub
     
+Sub 片側接続のコネクタ()
+
+    Dim sldidx As Integer       ' slide index
+    Dim shprng As ShapeRange    ' shape range
+    Dim shp As Shape            ' shape
+    Dim flg As Boolean          ' flag
+    
+    ' 単一スライドチェック
+    On Error GoTo ERROR_NO_ONE_SLIDE
+    sldidx = ActiveWindow.Selection.SlideRange.SlideIndex
+    On Error GoTo 0
+    
+    ' スライドの図形一覧
+    ActiveWindow.Selection.Unselect
+    Set shprng = ActivePresentation.Slides(sldidx).shapes.Range
+    For Each shp In shprng
+        
+        If shp.Connector Then
+        
+            flg = False
+            
+            ' 片側コネクタのチェック
+            If shp.ConnectorFormat.BeginConnected And Not shp.ConnectorFormat.EndConnected Then flg = True
+            If shp.ConnectorFormat.EndConnected And Not shp.ConnectorFormat.BeginConnected Then flg = True
+            
+            ' 片側接続のコネクタが見つかったら終了
+            If flg Then
+                shp.Select
+                MsgBox "片側接続のコネクタがあります。", vbInformation
+                Exit Sub
+            End If
+            
+        End If
+        
+    Next
+    
+    ' 片側接続のコネクタが見つからかったことを通知
+    MsgBox "片側接続のコネクタはありません。", vbInformation
+    
+    Exit Sub
+    
+ERROR_NO_ONE_SLIDE:
+
+    MsgBox "スライドを選択してください"
+    Exit Sub
+
+End Sub
+
