@@ -13,19 +13,19 @@ Sub 図形をグリッドに揃える()
     Dim shprng As ShapeRange    ' shape range
     Dim shp As Shape            ' shape
     Dim shpcnt As Integer       ' shape count changed
-    Dim cnnct As Boolean    ' connector or not
-    Dim left As Integer     ' left
-    Dim top As Integer      ' top
-    Dim width As Integer    ' width
-    Dim height As Integer   ' height
+    Dim cnnct As Boolean        ' connector or not
+    Dim left As Single      ' left
+    Dim top As Single       ' top
+    Dim width As Single     ' width
+    Dim height As Single    ' height
     Dim lcnt As Integer     ' left count
-    Dim lrem As Integer     ' left remain
+    Dim lrem As Single      ' left remain
     Dim tcnt As Integer     ' top count
-    Dim trem As Integer     ' top remain
+    Dim trem As Single      ' top remain
     Dim wcnt As Integer     ' width count
-    Dim wrem As Integer     ' width remain
+    Dim wrem As Single      ' width remain
     Dim hcnt As Integer     ' height count
-    Dim hrem As Integer     ' height remain
+    Dim hrem As Single      ' height remain
     
     ' 単一スライドチェック
     On Error GoTo ERROR_NO_ONE_SLIDE
@@ -105,10 +105,11 @@ Sub 図形をグリッドに揃える()
                 
                 ' デバッグ：変更内容の表示
                 Debug.Print "----" + vbCrLf + _
-                    CStr(shp.left) + " -> " + CStr(left) + vbCrLf + _
-                    CStr(shp.top) + " -> " + CStr(top) + vbCrLf + _
-                    CStr(shp.width) + " -> " + CStr(width) + vbCrLf + _
-                    CStr(shp.height) + " -> " + CStr(height) + vbCrLf
+                    "grid   : " + CStr(ActivePresentation.GridDistance) + vbCrLf + _
+                    "left   : " + CStr(shp.left) + " -> " + CStr(left) + " " + CStr(lcnt) + " " + CStr(lrem) + vbCrLf + _
+                    "top    : " + CStr(shp.top) + " -> " + CStr(top) + " " + CStr(tcnt) + " " + CStr(trem) + vbCrLf + _
+                    "width  : " + CStr(shp.width) + " -> " + CStr(width) + " " + CStr(wcnt) + " " + CStr(wrem) + vbCrLf + _
+                    "height : " + CStr(shp.height) + " -> " + CStr(height) + " " + CStr(hcnt) + " " + CStr(hrem) + vbCrLf
 
                 shp.Select msoFalse
                 shpcnt = shpcnt + 1
@@ -126,10 +127,7 @@ Sub 図形をグリッドに揃える()
     
     ' 調整結果を通知
     If shpcnt > 0 Then
-        MsgBox _
-            CStr(shpcnt) + "個の図形をグリッドに揃えました。" + vbCrLf + _
-            "位置を調整した図形を選択しています。", _
-            vbInformation
+        MsgBox CStr(shpcnt) + "個の図形をグリッドに揃えました。", vbInformation
     Else
         MsgBox "位置を調整した図形はありません。", vbInformation
     End If
