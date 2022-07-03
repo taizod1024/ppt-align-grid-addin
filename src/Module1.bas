@@ -34,7 +34,10 @@ Sub 図形をグリッドに揃える()
     
     ' 図形選択チェック
     If ActiveWindow.Selection.Type <> ppSelectionShapes Then
-        If MsgBox("図形は選択されていません" + vbCrLf + "表示しているスライドのすべての図形を調整しますか？", vbQuestion + vbOKCancel) = vbNo Then
+        If MsgBox( _
+            "選択されている図形ありません。" + vbCrLf + _
+            "すべての図形をグリッドに揃えますか？", _
+            vbQuestion + vbOKCancel) = vbNo Then
             Exit Sub
         End If
         Set shprng = ActivePresentation.Slides(sldidx).shapes.Range
@@ -98,13 +101,15 @@ Sub 図形をグリッドに揃える()
                 ' 変更されていなければ何もしない
             Else
             
+                ' 変更されていれば新たに選択する
+                
                 ' デバッグ：変更内容の表示
-                Debug.Print CStr(shp.left) + " -> " + CStr(left) + vbCrLf + _
+                Debug.Print "----" + vbCrLf + _
+                    CStr(shp.left) + " -> " + CStr(left) + vbCrLf + _
                     CStr(shp.top) + " -> " + CStr(top) + vbCrLf + _
                     CStr(shp.width) + " -> " + CStr(width) + vbCrLf + _
                     CStr(shp.height) + " -> " + CStr(height) + vbCrLf
 
-                ' 変更されていれば新たに選択する
                 shp.Select msoFalse
                 shpcnt = shpcnt + 1
                 shp.LockAspectRatio = msoFalse
@@ -112,6 +117,7 @@ Sub 図形をグリッドに揃える()
                 shp.top = top
                 shp.width = width
                 shp.height = height
+                
             End If
             
         End If
@@ -120,9 +126,12 @@ Sub 図形をグリッドに揃える()
     
     ' 調整結果を通知
     If shpcnt > 0 Then
-        MsgBox CStr(shpcnt) + "個の図形の位置を調整しました。" + vbCrLf + "調整した図形を選択しています。", vbInformation
+        MsgBox _
+            CStr(shpcnt) + "個の図形をグリッドに揃えました。" + vbCrLf + _
+            "位置を調整した図形を選択しています。", _
+            vbInformation
     Else
-        MsgBox "位置の調整が必要な図形はありません。", vbInformation
+        MsgBox "位置を調整した図形はありません。", vbInformation
     End If
     
     Exit Sub
