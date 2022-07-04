@@ -3,8 +3,9 @@
 		<tabs>
 			<tab idMso="TabView">
 				<group id="GroupAlignGrid" label="図形">
-					<button enabled="true" id="Button1" imageMso="GridSettings" label="グリッドに揃える" onAction="グリッドに揃えるCB" showImage="true" size="large" showLabel="true" visible="true" />
-					<button enabled="true" id="Button2" imageMso="VisioAngledConnector" label="片側接続のコネクタ" onAction="片側接続のコネクタCB" showImage="true" size="large" showLabel="true" visible="true" />
+					<button enabled="true" id="Button1" imageMso="SizeToGridAccess" label="グリッド線に揃える" getPressed="グリッド線に揃えるフラグCB" onAction="グリッド線に揃えるトグルCB" showImage="true" size="large" showLabel="true" visible="true" />
+					<button enabled="true" id="Button2" imageMso="GridSettings" label="グリッド線に一括調整" onAction="グリッド線に一括調整CB" showImage="true" size="large" showLabel="true" visible="true" />
+					<button enabled="true" id="Button3" imageMso="VisioAngledConnector" label="片側接続のコネクタ" onAction="片側接続のコネクタCB" showImage="true" size="large" showLabel="true" visible="true" />
 				</group>
 			</tab>
 		</tabs>

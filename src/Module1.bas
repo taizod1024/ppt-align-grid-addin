@@ -1,9 +1,21 @@
 Attribute VB_Name = "Module1"
 Option Explicit
 
-Sub グリッドに揃えるCB(constrol As IRibbonControl)
+Function グリッド線に揃えるフラグCB(constrol As IRibbonControl)
 
-    グリッドに揃える
+    グリッド線に揃えるフラグCB = ActivePresentation.SnapToGrid
+    
+End Function
+
+Sub グリッド線に揃えるトグルCB(constrol As IRibbonControl)
+
+    ActivePresentation.SnapToGrid = Not ActivePresentation.SnapToGrid
+   
+End Sub
+
+Sub グリッド線に一括調整CB(constrol As IRibbonControl)
+
+    グリッド線に一括調整
 
 End Sub
 
@@ -13,7 +25,7 @@ Sub 片側接続のコネクタCB(constrol As IRibbonControl)
 
 End Sub
 
-Sub グリッドに揃える()
+Sub グリッド線に一括調整()
 
     Dim sldidx As Integer       ' slide index
     Dim shprng As ShapeRange    ' shape range
@@ -42,8 +54,8 @@ Sub グリッドに揃える()
     If ActiveWindow.Selection.Type <> ppSelectionShapes Then
         If MsgBox( _
             "選択されている図形ありません。" + vbCrLf + _
-            "すべての図形をグリッドに揃えますか？", _
-            vbQuestion + vbOKCancel) = vbNo Then
+            "すべての図形をグリッド線に揃えますか？", _
+            vbQuestion + vbOKCancel) = vbCancel Then
             Exit Sub
         End If
         Set shprng = ActivePresentation.Slides(sldidx).shapes.Range
@@ -72,11 +84,11 @@ Sub グリッドに揃える()
             width = shp.width
             height = shp.height
             
-            ' 中心に合わせて調整、グリッドの揃えた後で元に戻す
+            ' 中心に合わせて調整、グリッド線の揃えた後で元に戻す
             left = left - ActivePresentation.PageSetup.SlideWidth / 2
             top = top - ActivePresentation.PageSetup.SlideHeight / 2
             
-            ' 繰返数を求めた後で差分を計算しグリッドに揃うよう調整
+            ' 繰返数を求めた後で差分を計算しグリッド線に揃うよう調整
             lcnt = Round(left / ActivePresentation.GridDistance)
             lrem = left - lcnt * ActivePresentation.GridDistance
             left = left - lrem
@@ -132,9 +144,7 @@ Sub グリッドに揃える()
     Next
     
     ' 調整結果を通知
-    If shpcnt > 0 Then
-        MsgBox CStr(shpcnt) + "個の図形をグリッドに揃えました。", vbInformation
-    Else
+    If shpcnt = 0 Then
         MsgBox "位置を調整した図形はありません。", vbInformation
     End If
     
@@ -175,7 +185,6 @@ Sub 片側接続のコネクタ()
             ' 片側接続のコネクタが見つかったら終了
             If flg Then
                 shp.Select
-                MsgBox "片側接続のコネクタがあります。", vbInformation
                 Exit Sub
             End If
             
