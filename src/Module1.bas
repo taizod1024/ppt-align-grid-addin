@@ -1,31 +1,19 @@
 Attribute VB_Name = "Module1"
 Option Explicit
 
-Function グリッド線に揃えるフラグCB(constrol As IRibbonControl)
+Sub グリッド線に揃える_onAction(constrol As IRibbonControl)
 
-    グリッド線に揃えるフラグCB = ActivePresentation.SnapToGrid
-    
-End Function
-
-Sub グリッド線に揃えるトグルCB(constrol As IRibbonControl)
-
-    ActivePresentation.SnapToGrid = Not ActivePresentation.SnapToGrid
-   
-End Sub
-
-Sub グリッド線に一括調整CB(constrol As IRibbonControl)
-
-    グリッド線に一括調整
+    グリッド線に揃える
 
 End Sub
 
-Sub 片側接続のコネクタCB(constrol As IRibbonControl)
+Sub 片側接続のコネクタ_onAction(constrol As IRibbonControl)
 
     片側接続のコネクタ
 
 End Sub
 
-Sub グリッド線に一括調整()
+Sub グリッド線に揃える()
 
     Dim sldidx As Integer       ' slide index
     Dim shprng As ShapeRange    ' shape range
