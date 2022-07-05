@@ -40,12 +40,6 @@ Sub グリッド線に揃える()
     
     ' 図形選択チェック
     If ActiveWindow.Selection.Type <> ppSelectionShapes Then
-        If MsgBox( _
-            "選択されている図形ありません。" + vbCrLf + _
-            "すべての図形をグリッド線に揃えますか？", _
-            vbQuestion + vbOKCancel) = vbCancel Then
-            Exit Sub
-        End If
         Set shprng = ActivePresentation.Slides(sldidx).shapes.Range
     Else
         Set shprng = ActiveWindow.Selection.ShapeRange
@@ -131,11 +125,6 @@ Sub グリッド線に揃える()
         End If
         
     Next
-    
-    ' 調整結果を通知
-    If shpcnt = 0 Then
-        MsgBox "すべての図形がグリッド線に揃っています。", vbInformation
-    End If
     
     Exit Sub
     
