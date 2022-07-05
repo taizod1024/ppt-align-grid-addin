@@ -18,7 +18,8 @@ Sub グリッド線に揃える()
     Dim sldidx As Integer       ' slide index
     Dim shprng As ShapeRange    ' shape range
     Dim shp As Shape            ' shape
-    Dim shpcnt As Integer       ' shape count changed
+    Dim shpdic As Object        ' shape dictionary for master
+    Dim shpcnt As Integer       ' shape count
     Dim cnnct As Boolean        ' connector or not
     Dim left As Single      ' left
     Dim top As Single       ' top
@@ -38,19 +39,41 @@ Sub グリッド線に揃える()
     sldidx = ActiveWindow.Selection.SlideRange.SlideIndex
     On Error GoTo 0
     
-    ' 図形選択チェック
+    ' 図形未選択時はスライドマスタ以外の図形をすべて選択
     If ActiveWindow.Selection.Type <> ppSelectionShapes Then
-        Set shprng = ActivePresentation.Slides(sldidx).shapes.Range
-    Else
-        Set shprng = ActiveWindow.Selection.ShapeRange
+    
+        ActiveWindow.Selection.Unselect
+    
+        ' スライドマスタの図形IDの辞書化
+        Set shpdic = CreateObject("Scripting.Dictionary")
+        For Each shp In ActivePresentation.Slides(sldidx).shapes.Placeholders
+            shpdic(shp.Id) = shp.Id
+        Next
+    
+        ' スライドマスタ以外の図形を選択
+        shpcnt = 0
+        For Each shp In ActivePresentation.Slides(sldidx).shapes.Range
+            If Not shpdic.Exists(shp.Id) Then
+                shp.Select msoFalse
+            End If
+        Next
+        
+        ' 選択した図形が0なら後続の処理でエラーになるため終了
+        If shpcnt = 0 Then
+            Exit Sub
+        End If
+                
     End If
     
-    ' 選択している図形単位で位置調整処理
+    ' 選択図形を対象に処理開始
+    Set shprng = ActiveWindow.Selection.ShapeRange
     ActiveWindow.Selection.Unselect
+    
+    ' 選択している図形単位で位置調整処理
     ActivePresentation.Slides(sldidx).Select
     shpcnt = 0
     For Each shp In shprng
-        
+                       
         ' コネクタ判定
         cnnct = False
         If shp.Connector Then
@@ -59,7 +82,7 @@ Sub グリッド線に揃える()
         End If
         
         ' コネクタ以外の場合
-        If Not (cnnct) Then
+        If Not cnnct Then
                
             ' 作業用の位置を取得
             left = shp.left

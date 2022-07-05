@@ -3,7 +3,7 @@
 		<tabs>
 			<tab idMso="TabView">
 				<group id="GroupAlignGrid" label="図形">
-					<button enabled="true" id="Button1" imageMso="SizeToGridAccess" label="グリッド線に揃える" onAction="グリッド線に揃える_onAction" screentip="グリッド線に揃える" supertip="図形をグリッド線に揃えます。位置を調整した図形があれば選択します。" showImage="true" size="large" showLabel="true" visible="true" />
+					<button enabled="true" id="Button1" imageMso="SizeToGridAccess" label="グリッド線に揃える" onAction="グリッド線に揃える_onAction" screentip="グリッド線に揃える" supertip="図形をグリッド線に揃えます。図形が選択されていない場合はスライドマスタ以外のすべての図形を揃えます。揃えた結果、位置を変更した図形があれば選択します。" showImage="true" size="large" showLabel="true" visible="true" />
 					<button enabled="true" id="Button2" imageMso="VisioAngledConnector" label="片側接続のコネクタ" onAction="片側接続のコネクタ_onAction" screentip="片側接続のコネクタ" supertip="片側接続のコネクタを探して選択します。" showImage="true" size="large" showLabel="true" visible="true" />
 				</group>
 			</tab>
