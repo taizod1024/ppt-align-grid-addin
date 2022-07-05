@@ -54,6 +54,7 @@ Sub ƒOƒŠƒbƒhü‚É‘µ‚¦‚é()
         shpcnt = 0
         For Each shp In ActivePresentation.Slides(sldidx).shapes.Range
             If Not shpdic.Exists(shp.Id) Then
+                shpcnt = shpcnt + 1
                 shp.Select msoFalse
             End If
         Next
