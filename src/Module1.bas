@@ -53,6 +53,7 @@ Sub グリッド線に揃える()
     
     ' 選択している図形単位で位置調整処理
     ActiveWindow.Selection.Unselect
+    ActivePresentation.Slides(sldidx).Select
     shpcnt = 0
     For Each shp In shprng
         
@@ -133,7 +134,7 @@ Sub グリッド線に揃える()
     
     ' 調整結果を通知
     If shpcnt = 0 Then
-        MsgBox "位置を調整した図形はありません。", vbInformation
+        MsgBox "すべての図形がグリッド線に揃っています。", vbInformation
     End If
     
     Exit Sub
@@ -156,9 +157,10 @@ Sub 片側接続のコネクタ()
     On Error GoTo ERROR_NO_ONE_SLIDE
     sldidx = ActiveWindow.Selection.SlideRange.SlideIndex
     On Error GoTo 0
-    
+   
     ' スライドの図形一覧
     ActiveWindow.Selection.Unselect
+    ActivePresentation.Slides(sldidx).Select
     Set shprng = ActivePresentation.Slides(sldidx).shapes.Range
     For Each shp In shprng
         
@@ -182,7 +184,6 @@ Sub 片側接続のコネクタ()
     
     ' 片側接続のコネクタが見つからかったことを通知
     MsgBox "片側接続のコネクタはありません。", vbInformation
-    
     Exit Sub
     
 ERROR_NO_ONE_SLIDE:
