@@ -46,6 +46,9 @@ Sub グリッド線に揃える()
     
         ' スライドマスタの図形IDの辞書化
         Set shpdic = CreateObject("Scripting.Dictionary")
+        For Each shp In ActivePresentation.Slides(sldidx).Master.shapes
+            shpdic(shp.Id) = shp.Id
+        Next
         For Each shp In ActivePresentation.Slides(sldidx).shapes.Placeholders
             shpdic(shp.Id) = shp.Id
         Next
