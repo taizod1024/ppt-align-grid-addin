@@ -15,7 +15,8 @@ End Sub
 
 Sub グリッド線に揃える()
 
-    Dim sldidx As Integer       ' slide index
+    Dim test As Object          ' test object
+    Dim sld As slide            ' slide
     Dim shprng As ShapeRange    ' shape range
     Dim shp As Shape            ' shape
     Dim shpdic As Object        ' shape dictionary for master
@@ -34,32 +35,53 @@ Sub グリッド線に揃える()
     Dim hcnt As Integer     ' height count
     Dim hrem As Single      ' height remain
     
-    ' 単一スライドチェック
-    On Error GoTo ERROR_NO_ONE_SLIDE
-    sldidx = ActiveWindow.Selection.SlideRange.SlideIndex
+    ' スライドがない場合をチェック
+    Set test = Nothing
+    On Error Resume Next
+    Set test = ActiveWindow.Selection
     On Error GoTo 0
+    If test Is Nothing Then
+        Debug.Print "----" + vbCrLf + _
+            "exit: cannot get selection"
+        Exit Sub
+    End If
     
     ' 図形未選択時はスライドマスタ以外の図形をすべて選択
     If ActiveWindow.Selection.Type <> ppSelectionShapes Then
     
-        ActiveWindow.Selection.Unselect
-    
-        ' スライドマスタの図形IDの辞書化
+        ' スライド取得
+        Set sld = Nothing
+        On Error Resume Next
+        Set sld = ActivePresentation.Slides.FindBySlideID(ActivePresentation.Windows(1).Selection.SlideRange.SlideID)
+        On Error GoTo 0
+        If sld Is Nothing Then
+            ' スライドの狭間を選択時はここで抜ける
+            ' スライドマスタ選択時もここで抜ける
+            ' ※本当はスライドマスタを取得できれば抜ける必要はない
+            Debug.Print "----" + vbCrLf + _
+                "exit: cannot get slide object"
+            Exit Sub
+        End If
+        
+        ' プレースホルダの図形IDの辞書化
         Set shpdic = CreateObject("Scripting.Dictionary")
-        For Each shp In ActivePresentation.Slides(sldidx).Master.shapes
-            shpdic(shp.Id) = shp.Id
-        Next
-        For Each shp In ActivePresentation.Slides(sldidx).shapes.Placeholders
+        For Each shp In sld.shapes.Placeholders
             shpdic(shp.Id) = shp.Id
         Next
     
-        ' スライドマスタ以外の図形を選択
+        ' プレースホルダおよびフッターの図形以外を選択
         shpcnt = 0
-        For Each shp In ActivePresentation.Slides(sldidx).shapes.Range
-            If Not shpdic.Exists(shp.Id) Then
+        For Each shp In sld.shapes.Range
+        
+            If Not shpdic.Exists(shp.Id) And _
+                Not shp.Name Like "Footer Placeholder*" And _
+                Not shp.Name Like "Slide Number Placeholder*" And _
+                Not shp.Name Like "Date Placeholder*" Then
+                
                 shpcnt = shpcnt + 1
                 shp.Select msoFalse
             End If
+            
         Next
         
         ' 選択した図形が0なら後続の処理でエラーになるため終了
@@ -74,7 +96,6 @@ Sub グリッド線に揃える()
     ActiveWindow.Selection.Unselect
     
     ' 選択している図形単位で位置調整処理
-    ActivePresentation.Slides(sldidx).Select
     shpcnt = 0
     For Each shp In shprng
                        
@@ -155,30 +176,31 @@ Sub グリッド線に揃える()
     
     Exit Sub
     
-ERROR_NO_ONE_SLIDE:
-
-    MsgBox "スライドを選択してください"
-    Exit Sub
-
 End Sub
     
 Sub 片側接続のコネクタ()
 
-    Dim sldidx As Integer       ' slide index
-    Dim shprng As ShapeRange    ' shape range
-    Dim shp As Shape            ' shape
-    Dim flg As Boolean          ' flag
+    Dim sld As slide    ' slide
+    Dim shp As Shape    ' shape
+    Dim flg As Boolean  ' flag
     
-    ' 単一スライドチェック
-    On Error GoTo ERROR_NO_ONE_SLIDE
-    sldidx = ActiveWindow.Selection.SlideRange.SlideIndex
+    ' スライド取得
+    Set sld = Nothing
+    On Error Resume Next
+    Set sld = ActivePresentation.Slides.FindBySlideID(ActivePresentation.Windows(1).Selection.SlideRange.SlideID)
     On Error GoTo 0
-   
+    If sld Is Nothing Then
+        ' スライドの狭間を選択時はここで抜ける
+        ' スライドマスタ選択時もここで抜ける
+        ' ※本当はスライドマスタを取得できれば抜ける必要はない
+        Debug.Print "----" + vbCrLf + _
+            "exit: cannot get slide object"
+        Exit Sub
+    End If
+    
     ' スライドの図形一覧
     ActiveWindow.Selection.Unselect
-    ActivePresentation.Slides(sldidx).Select
-    Set shprng = ActivePresentation.Slides(sldidx).shapes.Range
-    For Each shp In shprng
+    For Each shp In sld.shapes.Range
         
         If shp.Connector Then
         
@@ -198,14 +220,9 @@ Sub 片側接続のコネクタ()
         
     Next
     
-    ' 片側接続のコネクタが見つからかったことを通知
+    ' 片側接続のコネクタが見つからなかったことを通知
     MsgBox "片側接続のコネクタはありません。", vbInformation
     Exit Sub
     
-ERROR_NO_ONE_SLIDE:
-
-    MsgBox "スライドを選択してください"
-    Exit Sub
-
 End Sub
 
