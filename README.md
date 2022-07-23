@@ -6,6 +6,7 @@ PowerPointの図形をグリッドに揃えるアドイン
 
 1. ppt-align-grid-addinをPowerPointアドインとして読み込みます。
 2. [表示]タブの右側に[図形]セクションが追加されます。
+
 ![ppt-align-grid](img/ppt-ailgn-grid.png)
 
 ### グリッド線に揃える
