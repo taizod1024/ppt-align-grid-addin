@@ -17,3 +17,11 @@ PowerPointの図形をグリッドに揃えるアドイン
 ### 片側接続のコネクタ
 
 - 片側だけ図形に接続しているコネクタを探します。
+
+## ppam編集方法
+
+1. ./src/ppt-align-grid.pptxを編集
+2. 編集結果はbasとしてエクスポート
+3. powerpointで新規ファイルを編集してbasをインポートして./ppt-align-grid.ppamとして保存
+4. 一時的に./ppt-align-grid.ppam.zipとしてから./src/ppt-align-grid/配下をコピー
+5. ./ppt-align-grid.ppamに名前を戻す
