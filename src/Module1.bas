@@ -13,10 +13,16 @@ Sub 片側接続のコネクタ_onAction(constrol As IRibbonControl)
 
 End Sub
 
+Sub リンク切れチェック_onAction(constrol As IRibbonControl)
+
+    リンク切れチェック
+
+End Sub
+
 Sub グリッド線に揃える()
 
     Dim test As Object          ' test object
-    Dim sld As slide            ' slide
+    Dim sld As Slide            ' slide
     Dim shprng As ShapeRange    ' shape range
     Dim shp As Shape            ' shape
     Dim shpdic As Object        ' shape dictionary for master
@@ -65,13 +71,13 @@ Sub グリッド線に揃える()
         
         ' プレースホルダの図形IDの辞書化
         Set shpdic = CreateObject("Scripting.Dictionary")
-        For Each shp In sld.shapes.Placeholders
+        For Each shp In sld.Shapes.Placeholders
             shpdic(shp.Id) = shp.Id
         Next
     
         ' プレースホルダおよびフッターの図形以外を選択
         shpcnt = 0
-        For Each shp In sld.shapes.Range
+        For Each shp In sld.Shapes.Range
         
             If Not shpdic.Exists(shp.Id) And _
                 Not shp.Name Like "Footer Placeholder*" And _
@@ -109,64 +115,80 @@ Sub グリッド線に揃える()
         ' コネクタ以外の場合
         If Not cnnct Then
                
-            ' 作業用の位置を取得
-            left = shp.left
-            top = shp.top
-            width = shp.width
-            height = shp.height
+            If shp.Locked Then
             
-            ' 中心に合わせて調整、グリッド線の揃えた後で元に戻す
-            left = left - ActivePresentation.PageSetup.SlideWidth / 2
-            top = top - ActivePresentation.PageSetup.SlideHeight / 2
-            
-            ' 繰返数を求めた後で差分を計算しグリッド線に揃うよう調整
-            lcnt = Round(left / ActivePresentation.GridDistance)
-            lrem = left - lcnt * ActivePresentation.GridDistance
-            left = left - lrem
-            width = width + lrem
-            
-            tcnt = Round(top / ActivePresentation.GridDistance)
-            trem = top - tcnt * ActivePresentation.GridDistance
-            top = top - trem
-            height = height + trem
-            
-            wcnt = Round(width / ActivePresentation.GridDistance)
-            wrem = width - wcnt * ActivePresentation.GridDistance
-            width = width - wrem
-            
-            hcnt = Round(height / ActivePresentation.GridDistance)
-            hrem = height - hcnt * ActivePresentation.GridDistance
-            height = height - hrem
-            
-            ' 元の位置に戻す
-            left = left + ActivePresentation.PageSetup.SlideWidth / 2
-            top = top + ActivePresentation.PageSetup.SlideHeight / 2
-            
-            If Abs(shp.left - left) < 0.01 And _
-                Abs(shp.top - top) < 0.01 And _
-                Abs(shp.width - width) < 0.01 And _
-                Abs(shp.height - height) < 0.01 Then
+                ' ロックされている場合
                 
-                ' 変更されていなければ何もしない
-            Else
-            
-                ' 変更されていれば新たに選択する
-                
-                ' デバッグ：変更内容の表示
+                ' デバッグ：ロックの表示
                 Debug.Print "----" + vbCrLf + _
-                    "grid   : " + CStr(ActivePresentation.GridDistance) + vbCrLf + _
-                    "left   : " + CStr(shp.left) + " -> " + CStr(left) + " " + CStr(lcnt) + " " + CStr(lrem) + vbCrLf + _
-                    "top    : " + CStr(shp.top) + " -> " + CStr(top) + " " + CStr(tcnt) + " " + CStr(trem) + vbCrLf + _
-                    "width  : " + CStr(shp.width) + " -> " + CStr(width) + " " + CStr(wcnt) + " " + CStr(wrem) + vbCrLf + _
-                    "height : " + CStr(shp.height) + " -> " + CStr(height) + " " + CStr(hcnt) + " " + CStr(hrem) + vbCrLf
-
-                shp.Select msoFalse
-                shpcnt = shpcnt + 1
-                shp.LockAspectRatio = msoFalse
-                shp.left = left
-                shp.top = top
-                shp.width = width
-                shp.height = height
+                    "id     : " + CStr(shp.Id) + vbCrLf + _
+                    "status : locked"
+                        
+            Else
+                            
+                ' ロックされていない場合
+                            
+                ' 作業用の位置を取得
+                left = shp.left
+                top = shp.top
+                width = shp.width
+                height = shp.height
+                
+                ' 中心に合わせて調整、グリッド線の揃えた後で元に戻す
+                left = left - ActivePresentation.PageSetup.SlideWidth / 2
+                top = top - ActivePresentation.PageSetup.SlideHeight / 2
+                
+                ' 繰返数を求めた後で差分を計算しグリッド線に揃うよう調整
+                lcnt = Round(left / ActivePresentation.GridDistance)
+                lrem = left - lcnt * ActivePresentation.GridDistance
+                left = left - lrem
+                width = width + lrem
+                
+                tcnt = Round(top / ActivePresentation.GridDistance)
+                trem = top - tcnt * ActivePresentation.GridDistance
+                top = top - trem
+                height = height + trem
+                
+                wcnt = Round(width / ActivePresentation.GridDistance)
+                wrem = width - wcnt * ActivePresentation.GridDistance
+                width = width - wrem
+                
+                hcnt = Round(height / ActivePresentation.GridDistance)
+                hrem = height - hcnt * ActivePresentation.GridDistance
+                height = height - hrem
+                
+                ' 元の位置に戻す
+                left = left + ActivePresentation.PageSetup.SlideWidth / 2
+                top = top + ActivePresentation.PageSetup.SlideHeight / 2
+                
+                If Abs(shp.left - left) < 0.01 And _
+                    Abs(shp.top - top) < 0.01 And _
+                    Abs(shp.width - width) < 0.01 And _
+                    Abs(shp.height - height) < 0.01 Then
+                    
+                    ' 変更されていなければ何もしない
+                Else
+                
+                    ' 変更されていれば新たに選択する
+                    
+                    ' デバッグ：変更内容の表示
+                    Debug.Print "----" + vbCrLf + _
+                        "id     : " + CStr(shp.Id) + vbCrLf + _
+                        "grid   : " + CStr(ActivePresentation.GridDistance) + vbCrLf + _
+                        "left   : " + CStr(shp.left) + " -> " + CStr(left) + " " + CStr(lcnt) + " " + CStr(lrem) + vbCrLf + _
+                        "top    : " + CStr(shp.top) + " -> " + CStr(top) + " " + CStr(tcnt) + " " + CStr(trem) + vbCrLf + _
+                        "width  : " + CStr(shp.width) + " -> " + CStr(width) + " " + CStr(wcnt) + " " + CStr(wrem) + vbCrLf + _
+                        "height : " + CStr(shp.height) + " -> " + CStr(height) + " " + CStr(hcnt) + " " + CStr(hrem) + vbCrLf
+    
+                    shp.Select msoFalse
+                    shpcnt = shpcnt + 1
+                    shp.LockAspectRatio = msoFalse
+                    shp.left = left
+                    shp.top = top
+                    shp.width = width
+                    shp.height = height
+                    
+                End If
                 
             End If
             
@@ -180,7 +202,7 @@ End Sub
     
 Sub 片側接続のコネクタ()
 
-    Dim sld As slide    ' slide
+    Dim sld As Slide    ' slide
     Dim shp As Shape    ' shape
     Dim flg As Boolean  ' flag
     
@@ -200,7 +222,7 @@ Sub 片側接続のコネクタ()
     
     ' スライドの図形一覧
     ActiveWindow.Selection.Unselect
-    For Each shp In sld.shapes.Range
+    For Each shp In sld.Shapes.Range
         
         If shp.Connector Then
         
@@ -225,4 +247,176 @@ Sub 片側接続のコネクタ()
     Exit Sub
     
 End Sub
+
+Sub リンク切れチェック()
+
+    Dim linkcnt As Integer
+    linkcnt = 0
+    ActiveWindow.Selection.Unselect
+
+    ' stackoverflowを参考に実装
+    ' https://stackoverflow.com/questions/55724877/how-to-obtain-shapes-to-hyperlinks-in-powerpoint-vba
+    
+    Dim pptSlide As Slide
+    Dim pptShape As Shape
+    Dim pptActionSetting As ActionSetting
+    Dim pptMouseActivation As Variant
+    Dim strUrl As String
+    Dim strLabel As String
+    Dim i As Integer
+    Dim j As Integer
+    
+    If ActivePresentation.Slides.Count = 0 Then Exit Sub
+    ActivePresentation.Slides(1).Select
+    DoEvents
+    
+    For Each pptSlide In ActivePresentation.Slides
+    
+        pptSlide.Select
+        DoEvents
+        
+        For Each pptShape In pptSlide.Shapes
+            
+            ' Hyperlink assigned to shape:
+            For Each pptActionSetting In pptShape.ActionSettings
+                If pptActionSetting.Action = ppActionHyperlink Then
+                    strUrl = pptActionSetting.Hyperlink.Address
+                    
+                    linkcnt = linkcnt + 1
+                    If Not IsExistUrl(strUrl) Then
+                        GoTo ERROR
+                    End If
+                End If
+            Next pptActionSetting
+
+            ' Hyperlinks assigned to text or text parts:
+            If pptShape.TextFrame.HasText Then
+                For Each pptMouseActivation In Array(ppMouseClick, ppMouseOver)
+                    Set pptActionSetting = pptShape.TextFrame.TextRange.ActionSettings(pptMouseActivation)
+                    If pptActionSetting.Action = ppActionHyperlink Then
+                        strUrl = pptActionSetting.Hyperlink.Address
+                        
+                        linkcnt = linkcnt + 1
+                        If Not IsExistUrl(strUrl) Then
+                            GoTo ERROR
+                        End If
+                    Else
+                    
+                        strUrl = ""
+                        For i = 1 To pptShape.TextFrame.TextRange.Characters.Count
+                            Set pptActionSetting = pptShape.TextFrame.TextRange.Characters(i).ActionSettings(pptMouseActivation)
+                            If pptActionSetting.Action = ppActionHyperlink Then
+                                If strUrl <> pptActionSetting.Hyperlink.Address Then
+                                    strUrl = pptActionSetting.Hyperlink.Address
+                                    
+                                    linkcnt = linkcnt + 1
+                                    If Not IsExistUrl(strUrl) Then
+                                    
+                                        strLabel = ""
+                                        For j = i To pptShape.TextFrame.TextRange.Characters.Count
+                                            Set pptActionSetting = pptShape.TextFrame.TextRange.Characters(j).ActionSettings(pptMouseActivation)
+                                            If pptActionSetting.Action <> ppActionHyperlink Then Exit For
+                                            If strUrl <> pptActionSetting.Hyperlink.Address Then Exit For
+                                            strLabel = strLabel & pptShape.TextFrame.TextRange.Characters(j).Text
+                                        Next
+                                        
+                                        GoTo ERROR
+                                    End If
+                                End If
+                            End If
+                        Next i
+                    
+                    End If
+                Next pptMouseActivation
+            End If
+        
+        Next pptShape
+    Next pptSlide
+  
+    ' 成功時は選択解除
+    ActiveWindow.Selection.Unselect
+    
+    ' リンク切れを通知
+    MsgBox CStr(linkcnt) + " 個のURLをチェックしました。" + vbCrLf + _
+        "リンク切れのURLはありません。", vbInformation
+    Exit Sub
+    
+ERROR:
+
+    ' リンク切れのあった図形を選択
+    pptShape.Select
+    DoEvents
+            
+    ' リンク切れを通知
+    Dim strmsg As String
+    strmsg = CStr(linkcnt) + " 個目のURLのリンクが切れています。"
+    If strLabel <> "" Then
+        strmsg = strmsg + vbCrLf + "表示文字列：" + strLabel
+    End If
+    strmsg = strmsg & vbCrLf + "URL：" + strUrl
+    
+    MsgBox strmsg, vbCritical
+    
+    ' URLをクリップボードに格納
+    Dim data
+    Set data = CreateObject("new:{1C3B4210-F441-11CE-B9EA-00AA006B1A69}")
+    data.SetText strUrl
+    data.PutInClipboard
+    
+    ' URLを表示
+    If IsUrl(strUrl) Then
+        pptActionSetting.Hyperlink.Follow
+    End If
+        
+End Sub
+
+Function IsUrl(strUrl As String) As Boolean
+
+    Const strhttp = "http:"
+    Const strhttps = "https:"
+    
+    IsUrl = left(strUrl, Len(strhttp)) = strhttp Or left(strUrl, Len(strhttps)) = strhttps
+
+End Function
+
+Function IsExistUrl(strUrl As String) As Boolean
+
+    If IsUrl(strUrl) Then
+    
+        ' 以下のサイトを参考に実装
+        ' https://tonari-it.com/excel-vba-http-request/
+    
+        Dim httpReq
+        Set httpReq = CreateObject("MSXML2.XMLHTTP")
+        httpReq.Open "GET", strUrl
+        httpReq.Send
+        
+        Do While httpReq.readyState < 4
+            DoEvents
+        Loop
+        
+        Dim status As Integer
+        status = httpReq.status
+        IsExistUrl = status <> 404
+        Set httpReq = Nothing
+        
+        Debug.Print "----" + vbCrLf + _
+        "url    : " + strUrl + vbCrLf + _
+        "status : " + CStr(status) + vbCrLf + _
+        "result : " + CStr(IsExistUrl)
+        
+    Else
+    
+        Dim path As String
+        path = ActivePresentation.path + "\" + strUrl
+        IsExistUrl = Dir(path) <> ""
+        
+        Debug.Print "----" + vbCrLf + _
+        "url    : " + strUrl + vbCrLf + _
+        "result : " + CStr(IsExistUrl)
+        
+    End If
+        
+End Function
+
 
