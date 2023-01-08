@@ -14,7 +14,8 @@
                     <button enabled="true" id="Button3" imageMso="VisioHyperlinkInsert"
                         label="リンク切れのURL"
                         onAction="リンク切れのURL_onAction" screentip="リンク切れのURL"
-                        supertip="すべてのスライドからリンク切れしているURLを探して選択します。" showImage="true" size="large"
+                        supertip="すべてのスライドからリンク切れしているURLを探して選択します。HTTPステータス200以外の場合をリンク切れと判定しています。"
+                        showImage="true" size="large"
                         showLabel="true" visible="true" />
                 </group>
             </tab>

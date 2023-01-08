@@ -1,10 +1,10 @@
 # ppt-align-grid-addin
 
-PowerPointの図形をグリッド線に揃えるアドイン
+PowerPoint の図形をグリッド線に揃えるアドイン
 
 ## 使い方
 
-1. ppt-align-grid.ppamをPowerPointアドインとして読み込みます。
+1. ppt-align-grid.ppam を PowerPoint アドインとして読み込みます。
 2. [表示]タブの右側に[図形]セクションが追加されます。
 
 ![ppt-align-grid](images/ppt-ailgn-grid.png)
@@ -18,10 +18,15 @@ PowerPointの図形をグリッド線に揃えるアドイン
 
 - 片側だけ図形に接続しているコネクタを探します。
 
-## .ppam編集方法
+### リンク切れの URL
 
-1. ./src/ppt-align-grid.pptmを編集
-2. 編集結果はbasとしてエクスポート
-3. PowerPointで新規ファイルを作成し、basをインポートして./ppt-align-grid.ppamとして保存
-4. 一時的に./ppt-align-grid.ppam.zipとしてから./src/ppt-align-grid.ppam/配下をコピー
-5. ./ppt-align-grid.ppamに名前を戻す
+- すべてのスライドからリンク切れしている URL を探して選択します。
+- HTTP ステータス 200 以外の場合をリンク切れと判定しています。
+
+## .ppam 編集方法
+
+1. ./src/ppt-align-grid.pptm を編集
+2. 編集結果は bas としてエクスポート
+3. PowerPoint で新規ファイルを作成し、bas をインポートして./ppt-align-grid.ppam として保存
+4. 一時的に./ppt-align-grid.ppam.zip としてから./src/ppt-align-grid.ppam/配下をコピー
+5. ./ppt-align-grid.ppam に名前を戻す

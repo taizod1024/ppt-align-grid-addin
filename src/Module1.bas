@@ -358,7 +358,7 @@ Function IsExistUrl(strUrl As String) As Boolean
         
         Dim status As Integer
         status = httpReq.status
-        IsExistUrl = status <> 404
+        IsExistUrl = status = 200
         Set httpReq = Nothing
         
         Debug.Print "----" + vbCrLf + _
