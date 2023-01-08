@@ -13,9 +13,9 @@ Sub 片側接続のコネクタ_onAction(constrol As IRibbonControl)
 
 End Sub
 
-Sub リンク切れチェック_onAction(constrol As IRibbonControl)
+Sub リンク切れのURL_onAction(constrol As IRibbonControl)
 
-    リンク切れチェック
+    リンク切れのURL
 
 End Sub
 
@@ -248,126 +248,87 @@ Sub 片側接続のコネクタ()
     
 End Sub
 
-Sub リンク切れチェック()
+Sub リンク切れのURL()
 
-    Dim linkcnt As Integer
-    linkcnt = 0
+    Dim linkCnt As Integer
+    linkCnt = 0
     ActiveWindow.Selection.Unselect
 
     ' stackoverflowを参考に実装
     ' https://stackoverflow.com/questions/55724877/how-to-obtain-shapes-to-hyperlinks-in-powerpoint-vba
     
-    Dim pptSlide As Slide
-    Dim pptShape As Shape
-    Dim pptActionSetting As ActionSetting
-    Dim pptMouseActivation As Variant
+    Dim sld As Slide
+    Dim shp As Shape
+    Dim actionSetting As actionSetting
+    Dim mouseActivation As Variant
     Dim strUrl As String
     Dim strLabel As String
     Dim i As Integer
     Dim j As Integer
+       
+    ' スライドを列挙
+    For Each sld In ActivePresentation.Slides
     
-    If ActivePresentation.Slides.Count = 0 Then Exit Sub
-    ActivePresentation.Slides(1).Select
-    DoEvents
-    
-    For Each pptSlide In ActivePresentation.Slides
-    
-        pptSlide.Select
-        DoEvents
+        ' スライドを表示
+        ActiveWindow.View.GotoSlide sld.SlideIndex
         
-        For Each pptShape In pptSlide.Shapes
+        ' スライド配下の図形を列挙
+        For Each shp In sld.Shapes
             
-            ' Hyperlink assigned to shape:
-            For Each pptActionSetting In pptShape.ActionSettings
-                If pptActionSetting.Action = ppActionHyperlink Then
-                    strUrl = pptActionSetting.Hyperlink.Address
+            ' 図形を選択
+            shp.Select
+            
+            ' 図形にテキストがある場合
+            If shp.TextFrame.HasText Then
+            
+                ' 何を列挙しているか不明
+                For Each mouseActivation In Array(ppMouseClick, ppMouseOver)
+                    Set actionSetting = shp.TextFrame.TextRange.ActionSettings(mouseActivation)
+                    strUrl = ""
                     
-                    linkcnt = linkcnt + 1
-                    If Not IsExistUrl(strUrl) Then
-                        GoTo ERROR
-                    End If
-                End If
-            Next pptActionSetting
-
-            ' Hyperlinks assigned to text or text parts:
-            If pptShape.TextFrame.HasText Then
-                For Each pptMouseActivation In Array(ppMouseClick, ppMouseOver)
-                    Set pptActionSetting = pptShape.TextFrame.TextRange.ActionSettings(pptMouseActivation)
-                    If pptActionSetting.Action = ppActionHyperlink Then
-                        strUrl = pptActionSetting.Hyperlink.Address
+                    ' テキストを文字毎に列挙
+                    For i = 1 To shp.TextFrame.TextRange.Characters.Count
+                        Set actionSetting = shp.TextFrame.TextRange.Characters(i).ActionSettings(mouseActivation)
                         
-                        linkcnt = linkcnt + 1
-                        If Not IsExistUrl(strUrl) Then
-                            GoTo ERROR
-                        End If
-                    Else
-                    
-                        strUrl = ""
-                        For i = 1 To pptShape.TextFrame.TextRange.Characters.Count
-                            Set pptActionSetting = pptShape.TextFrame.TextRange.Characters(i).ActionSettings(pptMouseActivation)
-                            If pptActionSetting.Action = ppActionHyperlink Then
-                                If strUrl <> pptActionSetting.Hyperlink.Address Then
-                                    strUrl = pptActionSetting.Hyperlink.Address
-                                    
-                                    linkcnt = linkcnt + 1
-                                    If Not IsExistUrl(strUrl) Then
-                                    
-                                        strLabel = ""
-                                        For j = i To pptShape.TextFrame.TextRange.Characters.Count
-                                            Set pptActionSetting = pptShape.TextFrame.TextRange.Characters(j).ActionSettings(pptMouseActivation)
-                                            If pptActionSetting.Action <> ppActionHyperlink Then Exit For
-                                            If strUrl <> pptActionSetting.Hyperlink.Address Then Exit For
-                                            strLabel = strLabel & pptShape.TextFrame.TextRange.Characters(j).Text
-                                        Next
-                                        
-                                        GoTo ERROR
-                                    End If
-                                End If
+                        ' リンクの場合かつリンク先の変更があった場合のみ処理
+                        If actionSetting.Action = ppActionHyperlink And strUrl <> actionSetting.Hyperlink.Address Then
+                            strUrl = actionSetting.Hyperlink.Address
+                            linkCnt = linkCnt + 1
+                            
+                            ' リンク切れの場合
+                            If Not IsExistUrl(strUrl) Then
+                            
+                                ' リンク先が同じ文字を集めてラベルを作成
+                                strLabel = ""
+                                For j = i To shp.TextFrame.TextRange.Characters.Count
+                                    Dim actionSettingLabel As actionSetting
+                                    Set actionSettingLabel = shp.TextFrame.TextRange.Characters(j).ActionSettings(mouseActivation)
+                                    If actionSettingLabel.Action <> ppActionHyperlink Then Exit For
+                                    If strUrl <> actionSettingLabel.Hyperlink.Address Then Exit For
+                                    strLabel = strLabel & shp.TextFrame.TextRange.Characters(j).Text
+                                Next
+                                
+                                ' ラベルを選択
+                                shp.TextFrame.TextRange.Characters(i, Len(strLabel)).Select
+                                
+                                ' 処理終了
+                                Exit Sub
+                                
                             End If
-                        Next i
-                    
-                    End If
-                Next pptMouseActivation
+                        End If
+                    Next
+                Next
             End If
-        
-        Next pptShape
-    Next pptSlide
+        Next
+    Next
   
     ' 成功時は選択解除
     ActiveWindow.Selection.Unselect
     
     ' リンク切れを通知
-    MsgBox CStr(linkcnt) + " 個のURLをチェックしました。" + vbCrLf + _
+    MsgBox CStr(linkCnt) + " 個のURLをチェックしました。" + vbCrLf + _
         "リンク切れのURLはありません。", vbInformation
-    Exit Sub
     
-ERROR:
-
-    ' リンク切れのあった図形を選択
-    pptShape.Select
-    DoEvents
-            
-    ' リンク切れを通知
-    Dim strmsg As String
-    strmsg = CStr(linkcnt) + " 個目のURLのリンクが切れています。"
-    If strLabel <> "" Then
-        strmsg = strmsg + vbCrLf + "表示文字列：" + strLabel
-    End If
-    strmsg = strmsg & vbCrLf + "URL：" + strUrl
-    
-    MsgBox strmsg, vbCritical
-    
-    ' URLをクリップボードに格納
-    Dim data
-    Set data = CreateObject("new:{1C3B4210-F441-11CE-B9EA-00AA006B1A69}")
-    data.SetText strUrl
-    data.PutInClipboard
-    
-    ' URLを表示
-    If IsUrl(strUrl) Then
-        pptActionSetting.Hyperlink.Follow
-    End If
-        
 End Sub
 
 Function IsUrl(strUrl As String) As Boolean

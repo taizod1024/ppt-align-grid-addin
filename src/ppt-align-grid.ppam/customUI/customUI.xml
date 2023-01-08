@@ -12,9 +12,9 @@
                         supertip="片側接続のコネクタを探して選択します。" showImage="true" size="large"
                         showLabel="true" visible="true" />
                     <button enabled="true" id="Button3" imageMso="VisioHyperlinkInsert"
-                        label="リンク切れチェック"
-                        onAction="リンク切れチェック_onAction" screentip="リンク切れチェック"
-                        supertip="すべてのスライドのリンク切れをチェックします。" showImage="true" size="large"
+                        label="リンク切れのURL"
+                        onAction="リンク切れのURL_onAction" screentip="リンク切れのURL"
+                        supertip="すべてのスライドからリンク切れしているURLを探して選択します。" showImage="true" size="large"
                         showLabel="true" visible="true" />
                 </group>
             </tab>
