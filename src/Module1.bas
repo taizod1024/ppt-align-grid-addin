@@ -263,60 +263,105 @@ Sub リンク切れのURL()
     Dim mouseActivation As Variant
     Dim strUrl As String
     Dim strLabel As String
+    Dim strStatus As String
     Dim i As Integer
     Dim j As Integer
-       
+    
     ' スライドを列挙
     For Each sld In ActivePresentation.Slides
     
-        ' スライドを表示
+        ' 該当スライドへ移動
         ActiveWindow.View.GotoSlide sld.SlideIndex
         
         ' スライド配下の図形を列挙
         For Each shp In sld.Shapes
             
-            ' 図形を選択
+            ' 該当図形を選択
             shp.Select
             
-            ' 図形にテキストがある場合
-            If shp.TextFrame.HasText Then
-            
-                ' 何を列挙しているか不明
+            ' *** 図形に割り当てられたアクションがリンクの場合をチェック ***
+            For Each actionSetting In shp.ActionSettings
+                If actionSetting.Action = ppActionHyperlink Then
+                    strUrl = actionSetting.Hyperlink.Address
+                    linkCnt = linkCnt + 1
+                    strStatus = GetStatus(strUrl)
+                    If strStatus <> "" Then
+                        MsgBox "URL=" + strUrl + vbCrLf + _
+                            "STATUS=" + strStatus, vbCritical
+                        Exit Sub
+                    End If
+                End If
+            Next
+
+            ' *** 図形がファイルにリンクされた画像の場合にチェック ***
+            If shp.Type = msoLinkedPicture Then
+                strUrl = shp.LinkFormat.SourceFullName
+                linkCnt = linkCnt + 1
+                strStatus = GetStatus(strUrl)
+                If strStatus <> "" Then
+                    MsgBox "URL=" + strUrl + vbCrLf + _
+                        "STATUS=" + strStatus, vbCritical
+                    Exit Sub
+                End If
+                
+            ' *** 図形がテキストの場合にチェック ***
+            ElseIf shp.TextFrame.HasText Then
+                        
+                ' マウスクリックやマウスオーバーに割り当てられたアクションを列挙
                 For Each mouseActivation In Array(ppMouseClick, ppMouseOver)
                     Set actionSetting = shp.TextFrame.TextRange.ActionSettings(mouseActivation)
-                    strUrl = ""
                     
-                    ' テキストを文字毎に列挙
-                    For i = 1 To shp.TextFrame.TextRange.Characters.Count
-                        Set actionSetting = shp.TextFrame.TextRange.Characters(i).ActionSettings(mouseActivation)
-                        
-                        ' リンクの場合かつリンク先の変更があった場合のみ処理
-                        If actionSetting.Action = ppActionHyperlink And strUrl <> actionSetting.Hyperlink.Address Then
-                            strUrl = actionSetting.Hyperlink.Address
-                            linkCnt = linkCnt + 1
-                            
-                            ' リンク切れの場合
-                            If Not IsExistUrl(strUrl) Then
-                            
-                                ' リンク先が同じ文字を集めてラベルを作成
-                                strLabel = ""
-                                For j = i To shp.TextFrame.TextRange.Characters.Count
-                                    Dim actionSettingLabel As actionSetting
-                                    Set actionSettingLabel = shp.TextFrame.TextRange.Characters(j).ActionSettings(mouseActivation)
-                                    If actionSettingLabel.Action <> ppActionHyperlink Then Exit For
-                                    If strUrl <> actionSettingLabel.Hyperlink.Address Then Exit For
-                                    strLabel = strLabel & shp.TextFrame.TextRange.Characters(j).Text
-                                Next
-                                
-                                ' ラベルを選択
-                                shp.TextFrame.TextRange.Characters(i, Len(strLabel)).Select
-                                
-                                ' 処理終了
-                                Exit Sub
-                                
-                            End If
+                    ' *** 図形のテキストのアクションがリンクの場合をチェック ***
+                    If actionSetting.Action = ppActionHyperlink Then
+                    
+                        strUrl = actionSetting.Hyperlink.Address
+                        linkCnt = linkCnt + 1
+                        strStatus = GetStatus(strUrl)
+                        If strStatus <> "" Then
+                            MsgBox "URL=" + strUrl + vbCrLf + _
+                                "STATUS=" + strStatus, vbCritical
+                            Exit Sub
                         End If
-                    Next
+                        
+                    Else
+                                            
+                        ' テキストを文字毎に列挙
+                        strUrl = ""
+                        For i = 1 To shp.TextFrame.TextRange.Characters.Count
+                            Set actionSetting = shp.TextFrame.TextRange.Characters(i).ActionSettings(mouseActivation)
+                            
+                            ' *** 図形のテキストの一部のアクションがリンクの場合でさらにリンク先の変更があった場合をチェック ***
+                            If actionSetting.Action = ppActionHyperlink And strUrl <> actionSetting.Hyperlink.Address Then
+                                strUrl = actionSetting.Hyperlink.Address
+                                linkCnt = linkCnt + 1
+                                
+                                ' リンク切れの場合
+                                strStatus = GetStatus(strUrl)
+                                If strStatus <> "" Then
+                                
+                                    ' リンク先が同じ文字を集めてラベルを作成
+                                    strLabel = ""
+                                    For j = i To shp.TextFrame.TextRange.Characters.Count
+                                        Dim actionSettingLabel As actionSetting
+                                        Set actionSettingLabel = shp.TextFrame.TextRange.Characters(j).ActionSettings(mouseActivation)
+                                        If actionSettingLabel.Action <> ppActionHyperlink Then Exit For
+                                        If strUrl <> actionSettingLabel.Hyperlink.Address Then Exit For
+                                        strLabel = strLabel & shp.TextFrame.TextRange.Characters(j).Text
+                                    Next
+                                    
+                                    ' ラベルを選択
+                                    shp.TextFrame.TextRange.Characters(i, Len(strLabel)).Select
+                                    
+                                    ' リンク切れを検出
+                                    MsgBox "TEXT=" + strLabel + vbCrLf + _
+                                        "URL=" + strUrl + vbCrLf + _
+                                        "STATUS=" + strStatus, vbCritical
+                                    Exit Sub
+                                        
+                                End If
+                            End If
+                        Next
+                    End If
                 Next
             End If
         Next
@@ -340,7 +385,7 @@ Function IsUrl(strUrl As String) As Boolean
 
 End Function
 
-Function IsExistUrl(strUrl As String) As Boolean
+Function GetStatus(strUrl As String) As String
 
     If IsUrl(strUrl) Then
     
@@ -358,23 +403,26 @@ Function IsExistUrl(strUrl As String) As Boolean
         
         Dim status As Integer
         status = httpReq.status
-        IsExistUrl = status = 200
+        GetStatus = status
+        If status = 200 Then GetStatus = ""
+        If status = 404 Then GetStatus = CStr(status) + " NOT FOUND"
+        If status = 12007 Then GetStatus = CStr(status) + " ERROR_WINHTTP_NAME_NOT_RESOLVED"
         Set httpReq = Nothing
         
         Debug.Print "----" + vbCrLf + _
         "url    : " + strUrl + vbCrLf + _
-        "status : " + CStr(status) + vbCrLf + _
-        "result : " + CStr(IsExistUrl)
+        "code   : " + CStr(status) + vbCrLf + _
+        "status : " + GetStatus
         
     Else
     
         Dim path As String
         path = ActivePresentation.path + "\" + strUrl
-        IsExistUrl = Dir(path) <> ""
+        GetStatus = IIf(Dir(path) <> "", "", "path not found")
         
         Debug.Print "----" + vbCrLf + _
         "url    : " + strUrl + vbCrLf + _
-        "result : " + CStr(IsExistUrl)
+        "status : " + GetStatus
         
     End If
         
