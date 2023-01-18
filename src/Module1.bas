@@ -32,7 +32,7 @@ Sub グリッド線に揃える()
     Dim top As Single       ' top
     Dim width As Single     ' width
     Dim height As Single    ' height
-    Dim lcnt As Integer     ' left count
+    Dim lCnt As Integer     ' left count
     Dim lrem As Single      ' left remain
     Dim tcnt As Integer     ' top count
     Dim trem As Single      ' top remain
@@ -139,8 +139,8 @@ Sub グリッド線に揃える()
                 top = top - ActivePresentation.PageSetup.SlideHeight / 2
                 
                 ' 繰返数を求めた後で差分を計算しグリッド線に揃うよう調整
-                lcnt = Round(left / ActivePresentation.GridDistance)
-                lrem = left - lcnt * ActivePresentation.GridDistance
+                lCnt = Round(left / ActivePresentation.GridDistance)
+                lrem = left - lCnt * ActivePresentation.GridDistance
                 left = left - lrem
                 width = width + lrem
                 
@@ -175,7 +175,7 @@ Sub グリッド線に揃える()
                     Debug.Print "----" + vbCrLf + _
                         "id     : " + CStr(shp.Id) + vbCrLf + _
                         "grid   : " + CStr(ActivePresentation.GridDistance) + vbCrLf + _
-                        "left   : " + CStr(shp.left) + " -> " + CStr(left) + " " + CStr(lcnt) + " " + CStr(lrem) + vbCrLf + _
+                        "left   : " + CStr(shp.left) + " -> " + CStr(left) + " " + CStr(lCnt) + " " + CStr(lrem) + vbCrLf + _
                         "top    : " + CStr(shp.top) + " -> " + CStr(top) + " " + CStr(tcnt) + " " + CStr(trem) + vbCrLf + _
                         "width  : " + CStr(shp.width) + " -> " + CStr(width) + " " + CStr(wcnt) + " " + CStr(wrem) + vbCrLf + _
                         "height : " + CStr(shp.height) + " -> " + CStr(height) + " " + CStr(hcnt) + " " + CStr(hrem) + vbCrLf
@@ -250,130 +250,221 @@ End Sub
 
 Sub リンク切れのURL()
 
-    Dim linkCnt As Integer
-    linkCnt = 0
-    ActiveWindow.Selection.Unselect
-
-    ' stackoverflowを参考に実装
-    ' https://stackoverflow.com/questions/55724877/how-to-obtain-shapes-to-hyperlinks-in-powerpoint-vba
-    
+    Dim strUrlOld As String
+    Dim strUrlNew As String
+    Dim lCnt As Integer
     Dim sld As Slide
     Dim shp As Shape
-    Dim actionSetting As actionSetting
-    Dim mouseActivation As Variant
-    Dim strUrl As String
-    Dim strLabel As String
-    Dim strStatus As String
-    Dim i As Integer
-    Dim j As Integer
+    Dim strMessage As String
     
-    ' スライドを列挙
+    On Error GoTo ON_ERROR
+    
+    ' 現状の選択状態を解除
+    ActiveWindow.Selection.Unselect
+    
+    ' スライドを先頭から列挙
+    strUrlOld = ""
+    strUrlNew = ""
+    lCnt = 0
     For Each sld In ActivePresentation.Slides
     
-        ' 該当スライドへ移動
+        ' 処理中のスライドへ移動、.Selectでは表示は変わらない
         ActiveWindow.View.GotoSlide sld.SlideIndex
         
         ' スライド配下の図形を列挙
         For Each shp In sld.Shapes
-            
-            ' 該当図形を選択
-            shp.Select
-            
-            ' *** 図形に割り当てられたアクションがリンクの場合をチェック ***
-            For Each actionSetting In shp.ActionSettings
-                If actionSetting.Action = ppActionHyperlink Then
-                    strUrl = actionSetting.Hyperlink.Address
-                    linkCnt = linkCnt + 1
-                    strStatus = GetStatus(strUrl)
-                    If strStatus <> "" Then
-                        MsgBox "URL=" + strUrl + vbCrLf + _
-                            "STATUS=" + strStatus, vbCritical
-                        Exit Sub
-                    End If
-                End If
-            Next
-
-            ' *** 図形がファイルにリンクされた画像の場合にチェック ***
-            If shp.Type = msoLinkedPicture Then
-                strUrl = shp.LinkFormat.SourceFullName
-                linkCnt = linkCnt + 1
-                strStatus = GetStatus(strUrl)
-                If strStatus <> "" Then
-                    MsgBox "URL=" + strUrl + vbCrLf + _
-                        "STATUS=" + strStatus, vbCritical
-                    Exit Sub
-                End If
-                
-            ' *** 図形がテキストの場合にチェック ***
-            ElseIf shp.TextFrame.HasText Then
-                        
-                ' マウスクリックやマウスオーバーに割り当てられたアクションを列挙
-                For Each mouseActivation In Array(ppMouseClick, ppMouseOver)
-                    Set actionSetting = shp.TextFrame.TextRange.ActionSettings(mouseActivation)
-                    
-                    ' *** 図形のテキストのアクションがリンクの場合をチェック ***
-                    If actionSetting.Action = ppActionHyperlink Then
-                    
-                        strUrl = actionSetting.Hyperlink.Address
-                        linkCnt = linkCnt + 1
-                        strStatus = GetStatus(strUrl)
-                        If strStatus <> "" Then
-                            MsgBox "URL=" + strUrl + vbCrLf + _
-                                "STATUS=" + strStatus, vbCritical
-                            Exit Sub
-                        End If
-                        
-                    Else
-                                            
-                        ' テキストを文字毎に列挙
-                        strUrl = ""
-                        For i = 1 To shp.TextFrame.TextRange.Characters.Count
-                            Set actionSetting = shp.TextFrame.TextRange.Characters(i).ActionSettings(mouseActivation)
-                            
-                            ' *** 図形のテキストの一部のアクションがリンクの場合でさらにリンク先の変更があった場合をチェック ***
-                            If actionSetting.Action = ppActionHyperlink And strUrl <> actionSetting.Hyperlink.Address Then
-                                strUrl = actionSetting.Hyperlink.Address
-                                linkCnt = linkCnt + 1
-                                
-                                ' リンク切れの場合
-                                strStatus = GetStatus(strUrl)
-                                If strStatus <> "" Then
-                                
-                                    ' リンク先が同じ文字を集めてラベルを作成
-                                    strLabel = ""
-                                    For j = i To shp.TextFrame.TextRange.Characters.Count
-                                        Dim actionSettingLabel As actionSetting
-                                        Set actionSettingLabel = shp.TextFrame.TextRange.Characters(j).ActionSettings(mouseActivation)
-                                        If actionSettingLabel.Action <> ppActionHyperlink Then Exit For
-                                        If strUrl <> actionSettingLabel.Hyperlink.Address Then Exit For
-                                        strLabel = strLabel & shp.TextFrame.TextRange.Characters(j).Text
-                                    Next
-                                    
-                                    ' ラベルを選択
-                                    shp.TextFrame.TextRange.Characters(i, Len(strLabel)).Select
-                                    
-                                    ' リンク切れを検出
-                                    MsgBox "TEXT=" + strLabel + vbCrLf + _
-                                        "URL=" + strUrl + vbCrLf + _
-                                        "STATUS=" + strStatus, vbCritical
-                                    Exit Sub
-                                        
-                                End If
-                            End If
-                        Next
-                    End If
-                Next
-            End If
+        
+            ' 図形をチェック
+            ' - チェック失敗時はstrUrlOld等に値が設定
+            ' - チェック失敗後は最後のスライドまでURLの再設定を実施
+            CheckShape shp, strUrlOld, strUrlNew, lCnt
         Next
+        
     Next
   
-    ' 成功時は選択解除
-    ActiveWindow.Selection.Unselect
+    ' スライド列挙後
+    If lCnt = 0 Then
+        ' チェック成功時
+        ActiveWindow.Selection.Unselect
+        strMessage = "最後まで検索しました。"
+        Debug.Print "----" + vbCrLf + strMessage
+        MsgBox strMessage, vbInformation
+            
+    Else
+        ' チェック失敗時
+        strMessage = "リンク切れのURLが見つかったため" + CStr(lCnt) + "件再設定しました。" + vbCrLf + _
+            "再度実行してください。"
+        Debug.Print "----" + vbCrLf + strMessage
+        MsgBox strMessage, vbInformation
+
+    End If
     
-    ' リンク切れを通知
-    MsgBox CStr(linkCnt) + " 個のURLをチェックしました。" + vbCrLf + _
-        "リンク切れのURLはありません。", vbInformation
+    Exit Sub
     
+ON_ERROR:
+
+    ' エラー時
+    strMessage = Err.Source
+    Debug.Print "----" + vbCrLf + strMessage
+    MsgBox strMessage, vbExclamation
+
+End Sub
+
+Sub CheckShape(shp As Shape, _
+    ByRef strUrlOld As String, _
+    ByRef strUrlNew As String, _
+    ByRef lCnt As Integer)
+
+    ' 個々の図形をチェック
+    
+    ' stackoverflowを参考に実装
+    ' https://stackoverflow.com/questions/55724877/how-to-obtain-shapes-to-hyperlinks-in-powerpoint-vba
+    
+    Dim mouseActivation As Variant
+    Dim actionSetting As actionSetting
+    Dim rangeLabel As TextRange
+    Dim strUrl As String
+    Dim strLabel As String
+    Dim strType As String
+    Dim i As Integer
+    Dim j As Integer
+    
+    ' 図形を選択
+    shp.Select
+    
+    If shp.Type = msoGroup Then
+    
+        ' 図形がグループの場合
+        
+        Dim shp2 As Shape
+        For Each shp2 In shp.GroupItems
+            CheckShape shp2, strUrlOld, strUrlNew, lCnt
+        Next
+    
+    Else
+    
+        ' 図形がグループでない場合
+        
+        For Each actionSetting In shp.ActionSettings
+        
+            ' *** 図形のリンク先をチェック ***
+            If actionSetting.Action = ppActionHyperlink Then
+                Set rangeLabel = Nothing
+                strUrl = actionSetting.Hyperlink.Address
+                strLabel = ""
+                strType = "図形"
+                CheckShapeSub shp, strUrlOld, strUrlNew, lCnt, actionSetting, rangeLabel, strUrl, strLabel, strType
+            End If
+            
+        Next
+    
+        ' *** リンクされた図形のリンク先をチェック ***
+        If shp.Type = msoLinkedPicture Then
+            Set rangeLabel = Nothing
+            strUrl = shp.LinkFormat.SourceFullName
+            strLabel = ""
+            strType = "リンクされた図形"
+            CheckShapeSub shp, strUrlOld, strUrlNew, lCnt, actionSetting, rangeLabel, strUrl, strLabel, strType
+        ElseIf shp.TextFrame.HasText Then
+                    
+            For Each mouseActivation In Array(ppMouseClick, ppMouseOver)
+                Set actionSetting = shp.TextFrame.TextRange.ActionSettings(mouseActivation)
+                
+                ' *** テキスト全体のリンク先をチェック ***
+                If actionSetting.Action = ppActionHyperlink Then
+                    Set rangeLabel = shp.TextFrame.TextRange.Characters(1, shp.TextFrame.TextRange.Characters.Count)
+                    strUrl = actionSetting.Hyperlink.Address
+                    strLabel = shp.TextFrame.TextRange.Text
+                    strType = "テキスト"
+                    CheckShapeSub shp, strUrlOld, strUrlNew, lCnt, actionSetting, rangeLabel, strUrl, strLabel, strType
+                Else
+                                        
+                    strUrl = ""
+                    For i = 1 To shp.TextFrame.TextRange.Characters.Count
+                        Set actionSetting = shp.TextFrame.TextRange.Characters(i).ActionSettings(mouseActivation)
+                        
+                        ' *** テキストのリンク先をチェック ***
+                        If actionSetting.Action = ppActionHyperlink And strUrl <> actionSetting.Hyperlink.Address Then
+                            strUrl = actionSetting.Hyperlink.Address
+                            strLabel = ""
+                            For j = i To shp.TextFrame.TextRange.Characters.Count
+                                Dim actionSettingLabel As actionSetting
+                                Set actionSettingLabel = shp.TextFrame.TextRange.Characters(j).ActionSettings(mouseActivation)
+                                If actionSettingLabel.Action <> ppActionHyperlink Then Exit For
+                                If strUrl <> actionSettingLabel.Hyperlink.Address Then Exit For
+                                strLabel = strLabel & shp.TextFrame.TextRange.Characters(j).Text
+                            Next
+                            Set rangeLabel = shp.TextFrame.TextRange.Characters(i, Len(strLabel))
+                            Set actionSetting = rangeLabel.ActionSettings(mouseActivation)
+                            strType = "テキスト*"
+                            CheckShapeSub shp, strUrlOld, strUrlNew, lCnt, actionSetting, rangeLabel, strUrl, strLabel, strType
+                        End If
+                        
+                    Next
+                End If
+            Next
+        End If
+    End If
+  
+End Sub
+
+Sub CheckShapeSub(shp As Shape, _
+    ByRef strUrlOld As String, _
+    ByRef strUrlNew As String, _
+    ByRef lCnt As Integer, _
+    actionSetting As actionSetting, _
+    rangeLabel As TextRange, _
+    strUrl As String, _
+    strLabel As String, _
+    strType As String)
+
+    Dim strStatus As String
+    If strUrlNew = "" Then
+        strStatus = GetStatus(strUrl)
+                
+        Debug.Print "----" + vbCrLf + _
+                    "type   : " + strType + vbCrLf + _
+                    "url    : " + strUrl + vbCrLf + _
+                    "status : " + strStatus
+
+        If strStatus <> "" Then
+            If Not rangeLabel Is Nothing Then rangeLabel.Select
+            
+            Do
+                strUrlNew = InputBox(strType + "の新しいURLを入力してください。" + vbCrLf + strUrl, strStatus, strUrl)
+                If strUrlNew = "" Then
+                    If MsgBox("このURLをスキップして続行しますか？" + vbCrLf + "はい：スキップして続行" + vbCrLf + "いいえ：終了", vbYesNo + vbQuestion) = vbYes Then
+                        Exit Sub
+                    Else
+                        Err.Raise 1001, "キャンセルされました。"
+                    End If
+                End If
+                strUrl = strUrlNew
+                strStatus = GetStatus(strUrl)
+                        
+                Debug.Print "----" + vbCrLf + _
+                            "type   : " + strType + vbCrLf + _
+                            "newurl : " + strUrl + vbCrLf + _
+                            "status : " + strStatus
+                
+            Loop While strStatus <> ""
+            
+            If Not rangeLabel Is Nothing Then If strLabel = strUrl Then rangeLabel.Text = strUrlNew
+            If shp.Type = msoLinkedPicture Then shp.LinkFormat.SourceFullName = strUrlNew
+            If Not actionSetting Is Nothing Then actionSetting.Hyperlink.Address = strUrlNew
+            strUrlOld = strUrl
+            lCnt = lCnt + 1
+            
+        End If
+        
+    ElseIf strUrl = strUrlOld Then
+    
+        If Not rangeLabel Is Nothing Then If strLabel = strUrl Then rangeLabel.Text = strUrlNew
+        If shp.Type = msoLinkedPicture Then shp.LinkFormat.SourceFullName = strUrlNew
+        If Not actionSetting Is Nothing Then actionSetting.Hyperlink.Address = strUrlNew
+        lCnt = lCnt + 1
+    End If
+
 End Sub
 
 Function IsUrl(strUrl As String) As Boolean
@@ -418,11 +509,7 @@ Function GetStatus(strUrl As String) As String
     
         Dim path As String
         path = ActivePresentation.path + "\" + strUrl
-        GetStatus = IIf(Dir(path) <> "", "", "path not found")
-        
-        Debug.Print "----" + vbCrLf + _
-        "url    : " + strUrl + vbCrLf + _
-        "status : " + GetStatus
+        GetStatus = IIf(Dir(path) <> "", "", "FILE NOT FOUND")
         
     End If
         
