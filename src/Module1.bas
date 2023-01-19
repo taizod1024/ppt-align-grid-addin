@@ -114,8 +114,14 @@ Sub グリッド線に揃える()
         
         ' コネクタ以外の場合
         If Not cnnct Then
-               
-            If shp.Locked Then
+            
+            Dim is_locked As Boolean
+            is_locked = False
+            On Error Resume Next
+            is_locked = shp.Locked
+            On Error GoTo 0
+            
+            If is_locked Then
             
                 ' ロックされている場合
                 
