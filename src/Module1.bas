@@ -501,8 +501,14 @@ Function GetStatus(strUrl As String) As String
         Dim status As Integer
         status = httpReq.status
         GetStatus = status
+        If status = 0 Then GetStatus = CStr(status) + " Undefined Error"
         If status = 200 Then GetStatus = ""
-        If status = 404 Then GetStatus = CStr(status) + " NOT FOUND"
+        If status = 401 Then GetStatus = CStr(status) + " Unauthorized"
+        If status = 403 Then GetStatus = CStr(status) + " Forbidden"
+        If status = 404 Then GetStatus = CStr(status) + " Not Found"
+        If status = 500 Then GetStatus = CStr(status) + " Internal Server Error"
+        If status = 502 Then GetStatus = CStr(status) + " Bad Gateway"
+        If status = 503 Then GetStatus = CStr(status) + " Service Unavailable"
         If status = 12007 Then GetStatus = CStr(status) + " ERROR_WINHTTP_NAME_NOT_RESOLVED"
         Set httpReq = Nothing
         
@@ -515,7 +521,7 @@ Function GetStatus(strUrl As String) As String
     
         Dim path As String
         path = ActivePresentation.path + "\" + strUrl
-        GetStatus = IIf(Dir(path) <> "", "", "FILE NOT FOUND")
+        GetStatus = IIf(Dir(path) <> "", "", "File Not Found")
         
     End If
         
