@@ -436,8 +436,9 @@ Sub CheckShapeSub(shp As Shape, _
         If strStatus <> "" Then
             If Not rangeLabel Is Nothing Then rangeLabel.Select
             
+            strUrlNew = strUrl
             Do
-                strUrlNew = InputBox(strType + "の新しいURLを入力してください。" + vbCrLf + strUrl, strStatus, strUrl)
+                strUrlNew = InputBox(strType + "の新しいURLを入力してください。" + vbCrLf + strUrlNew, strStatus, strUrlNew)
                 If strUrlNew = "" Then
                     If MsgBox("このURLをスキップして続行しますか？" + vbCrLf + "はい：スキップして続行" + vbCrLf + "いいえ：終了", vbYesNo + vbQuestion) = vbYes Then
                         Exit Sub
@@ -445,12 +446,11 @@ Sub CheckShapeSub(shp As Shape, _
                         Err.Raise 1001, "キャンセルされました。"
                     End If
                 End If
-                strUrl = strUrlNew
-                strStatus = GetStatus(strUrl)
+                strStatus = GetStatus(strUrlNew)
                         
                 Debug.Print "----" + vbCrLf + _
                             "type   : " + strType + vbCrLf + _
-                            "newurl : " + strUrl + vbCrLf + _
+                            "newurl : " + strUrlNew + vbCrLf + _
                             "status : " + strStatus
                 
             Loop While strStatus <> ""
@@ -491,7 +491,7 @@ Function GetStatus(strUrl As String) As String
     
         Dim httpReq
         Set httpReq = CreateObject("MSXML2.XMLHTTP")
-        httpReq.Open "GET", strUrl
+        httpReq.Open "HEAD", strUrl
         httpReq.Send
         
         Do While httpReq.readyState < 4
