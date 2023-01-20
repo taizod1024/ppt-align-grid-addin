@@ -491,7 +491,7 @@ Function GetStatus(strUrl As String) As String
     
         Dim httpReq
         Set httpReq = CreateObject("MSXML2.XMLHTTP")
-        httpReq.Open "HEAD", strUrl
+        httpReq.Open "GET", strUrl
         httpReq.Send
         
         Do While httpReq.readyState < 4
