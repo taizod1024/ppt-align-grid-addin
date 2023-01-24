@@ -338,7 +338,6 @@ Sub CheckShape(shp As Shape, _
     If shp.Type = msoGroup Then
     
         ' 図形がグループの場合
-        
         Dim shp2 As Shape
         For Each shp2 In shp.GroupItems
             CheckShape shp2, strUrlOld, strUrlNew, lCnt
@@ -347,7 +346,6 @@ Sub CheckShape(shp As Shape, _
     Else
     
         ' 図形がグループでない場合
-        
         For Each actionSetting In shp.ActionSettings
         
             ' *** 図形のリンク先をチェック ***
@@ -429,12 +427,16 @@ Sub CheckShapeSub(shp As Shape, _
                     "type   : " + strType + vbCrLf + _
                     "url    : " + strUrl + vbCrLf + _
                     "status : " + strStatus
-
+                    
         If strStatus <> "" Then
         
             shp.Select
             If Not rangeLabel Is Nothing Then rangeLabel.Select
             
+            If strStatus = "0 Undefined Error" Then
+                Err.Raise 1002, "PowerPointからのアクセスが認証されていない可能性があります。" + vbCrLf + "リンクをクリックしてから再度実行してください。"
+            End If
+                    
             strUrlNew = strUrl
             Do
                 strUrlNew = InputBox(strType + "の新しいURLを入力してください。" + vbCrLf + strUrlNew, strStatus, strUrlNew)
