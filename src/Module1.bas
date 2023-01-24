@@ -335,9 +335,6 @@ Sub CheckShape(shp As Shape, _
     Dim i As Integer
     Dim j As Integer
     
-    ' 図形を選択
-    shp.Select
-    
     If shp.Type = msoGroup Then
     
         ' 図形がグループの場合
@@ -434,13 +431,15 @@ Sub CheckShapeSub(shp As Shape, _
                     "status : " + strStatus
 
         If strStatus <> "" Then
+        
+            shp.Select
             If Not rangeLabel Is Nothing Then rangeLabel.Select
             
             strUrlNew = strUrl
             Do
                 strUrlNew = InputBox(strType + "の新しいURLを入力してください。" + vbCrLf + strUrlNew, strStatus, strUrlNew)
                 If strUrlNew = "" Then
-                    If MsgBox("このURLをスキップして続行しますか？" + vbCrLf + "はい：スキップして続行" + vbCrLf + "いいえ：終了", vbYesNo + vbQuestion) = vbYes Then
+                    If MsgBox("このURLをスキップして続行しますか？" + vbCrLf + "はい：検索を続行" + vbCrLf + "いいえ：検索を終了", vbYesNo + vbQuestion) = vbYes Then
                         Exit Sub
                     Else
                         Err.Raise 1001, "キャンセルされました。"
